@@ -4,7 +4,7 @@ include_once('../db_functions.php');
 $con = dbConnect();
 
 // decodificar os dados do formulário
-parse_str($_POST, $formData);
+parse_str(file_get_contents("php://input"), $formData);
 
 $numero = $formData['numero'];
 
@@ -30,12 +30,12 @@ if ($notaExistente) {
 
   $sql .= "Prestador_Cnpj = '" . $_POST["prestador_cnpj"] . "', ";
   $sql .= "Prestador_Razao_Social = '" . $_POST["prestador_razao_social"] . "', ";
-  $sql .= "Prestador_Endereco_Logradouro = '" . $_POST["prestador_endereco_logradouro"] . "', ";
-  $sql .= "Prestador_Endereco_Numero = '" . $_POST["prestador_endereco_numero"] . "', ";
-  $sql .= "Prestador_Endereco_Bairro = '" . $_POST["prestador_endereco_bairro"] . "', ";
-  $sql .= "Prestador_Endereco_Codigo_Municipio = '" . $_POST["prestador_endereco_codigo_municipio"] . "', ";
-  $sql .= "Prestador_Endereco_Uf = '" . $_POST["prestador_endereco_uf"] . "', ";
-  $sql .= "Prestador_Endereco_Cep = '" . $_POST["prestador_endereco_cep"] . "', ";
+  $sql .= "Prestador_Endereco_Logradouro = '" . $_POST["prestador_logradouro"] . "', ";
+  $sql .= "Prestador_Endereco_Numero = '" . $_POST["prestador_numero"] . "', ";
+  $sql .= "Prestador_Endereco_Bairro = '" . $_POST["prestador_bairro"] . "', ";
+  $sql .= "Prestador_Endereco_Codigo_Municipio = '" . $_POST["prestador_codigo_municipio"] . "', ";
+  $sql .= "Prestador_Endereco_Uf = '" . $_POST["prestador_uf"] . "', ";
+  $sql .= "Prestador_Endereco_Cep = '" . $_POST["prestador_cep"] . "', ";
   $sql .= "Servico_Codigo_Tributacao_Municipio = '" . $_POST["servico_codigo_tributacao_municipio"] . "', ";
   $sql .= "Servico_Discriminacao = '" . $_POST["servico_discriminacao"] . "', ";
   $sql .= "Servico_Codigo_Municipio = '" . $_POST["servico_codigo_municipio"] . "', ";
@@ -45,12 +45,12 @@ if ($notaExistente) {
   $sql .= "Tomador_Cpf = '" . $_POST["tomador_cpf"] . "', ";
   $sql .= "Tomador_Cnpj = '" . $_POST["tomador_cnpj"] . "', ";
   $sql .= "Tomador_Razao_Social = '" . $_POST["tomador_razao_social"] . "', ";
-  $sql .= "Tomador_Endereco_Logradouro = '" . $_POST["tomador_endereco_logradouro"] . "', ";
-  $sql .= "Tomador_Endereco_Numero = '" . $_POST["tomador_endereco_numero"] . "', ";
-  $sql .= "Tomador_Endereco_Bairro = '" . $_POST["tomador_endereco_bairro"] . "', ";
-  $sql .= "Tomador_Endereco_Codigo_Municipio = '" . $_POST["tomador_endereco_codigo_municipio"] . "', ";
-  $sql .= "Tomador_Endereco_Uf = '" . $_POST["tomador_endereco_uf"] . "', ";
-  $sql .= "Tomador_Endereco_Cep = '" . $_POST["tomador_endereco_cep"] . "', ";
+  $sql .= "Tomador_Endereco_Logradouro = '" . $_POST["tomador_logradouro"] . "', ";
+  $sql .= "Tomador_Endereco_Numero = '" . $_POST["tomado_numero"] . "', ";
+  $sql .= "Tomador_Endereco_Bairro = '" . $_POST["tomador_bairro"] . "', ";
+  $sql .= "Tomador_Endereco_Codigo_Municipio = '" . $_POST["tomador_codigo_municipio"] . "', ";
+  $sql .= "Tomador_Endereco_Uf = '" . $_POST["tomador_uf"] . "', ";
+  $sql .= "Tomador_Endereco_Cep = '" . $_POST["tomador_cep"] . "', ";
   $sql .= "Servico_Codigo = '" . $_POST["servico_codigo"] . "', ";
   $sql .= "Servico_Codigo_Cnae = '" . $_POST["servico_codigo_cnae"] . "', ";
   $sql .= "Servico_Codigo_Municipio_Prestacao = '" . $_POST["servico_codigo_municipio_prestacao"] . "', ";
@@ -74,7 +74,7 @@ if ($notaExistente) {
   //$sql .= "Caminho_XML = '" . $_POST["Caminho_XML"] . "'";
 
 
-  if (querySQL($con, $sql)) {
+  if (execSQL($con, $sql)) {
     echo json_encode(['saved' => true]);
   } else {
     echo json_encode(['saved' => false]);
