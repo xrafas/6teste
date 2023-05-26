@@ -27,7 +27,7 @@ date_default_timezone_set('America/Sao_Paulo');
                 $tomadores = dataSQL($con, $stmt);
 
 
-                $sql_numero = "SELECT MAX(Numero) AS MaxNumero FROM nfse WHERE Codigo = " . $_SESSION['codigo'] . " ";
+                $sql_numero = "SELECT MAX(Numero) AS MaxNumero FROM nfse WHERE Codigo = '" . $_SESSION['codigo'] . "' ";
                 $result_numero = querySQL($con, $sql_numero);
                 $prox_num = $result_numero['MaxNumero'] + 1;
 
@@ -36,7 +36,7 @@ date_default_timezone_set('America/Sao_Paulo');
 
                 echo '
                 
-                <form method="post" id="frm_nfse" action="">
+                <form method="post" >
 
                 <ul>
 
