@@ -18,19 +18,71 @@ date_default_timezone_set('America/Sao_Paulo');
 
                 $id_nota_fiscal = isset($_GET['id']) ? $_GET['id'] : die('ERROR: Record ID not found.');
 
-                $sql = "SELECT * FROM nfse WHERE Id = $id_nota_fiscal";
+                $sql = "SELECT * FROM nfse WHERE Id = " . $id_nota_fiscal . " AND Codigo = " . $_SESSION['codigo'] . " ";
                 $result = querySQL($con, $sql);
 
-                echo '
+                // Verificar se há resultados
+                if (!$result) {
+                    echo "<h1 class='text-center'>O número da nota fiscal não foi encontrado.</h1>";
+                } else {
+
+                    if ($result['Status'] == '0') :
+                        $result['Status'] = 'Em digitação';
+                    elseif ($result['Status'] == '1') :
+                        $result['Status'] = 'Assinada';
+                    elseif ($result['Status'] == '2') :
+                        $result['Status'] = 'Validada';
+                    elseif ($result['Status'] == '3') :
+                        $result['Status'] = 'Autorizada';
+                    elseif ($result['Status'] == '4') :
+                        $result['Status'] = 'Cancelada';
+                    elseif ($result['Status'] == '5') :
+                        $result['Status'] = 'Autorizada(CCe)';
+                    endif;
+
+
+                    if (($result['Status'] == 'Autorizada') || ($result['Status'] == 'Autorizada(CCe)')) {
+                        $botões = '<button id="notaCancelarButton"  class="button-spacing"  style="margin-right: 10px;" type="button">Cancelar Nota</button>
+<button id="consultarButton"  class="button-spacing" type="button">Consultar</button>';
+                    } elseif ($result['Status'] == 'Cancelada') {
+                        $botões = '<button id="consultarButton"  class="button-spacing" type="button">Consultar</button>';
+                    } else {
+                        $botões = '<button id="editButton"  class="button-spacing" type="button" style="margin-right: 10px;">Editar</button>
+
+<button id="transmitirButton"  class="button-spacing" type="button" style="margin-right: 10px;">Transmitir</button>
+
+<button id="cancelarEdiButton" type="button"  class="button-spacing" style="display:none;  margin-right: 10px;">Cancelar Edição</button>
+
+<input type="submit"  class="button-spacing" value="Salvar" id="saveButton" style="display:none;  margin-right: 10px;"> 
+
+<button id="consultarButton"  class="button-spacing" type="button">Consultar</button>
+
+    ';
+                    }
+
+
+
+
+
+
+                    echo '
 <form method="post">
 
-<input type="number" id="id_nota_fiscal" name="id_nota_fiscal" value="' . $id_nota_fiscal . '" readonly="true">
+<input type="hidden" id="id_nota_fiscal" name="id_nota_fiscal" value="' . $id_nota_fiscal . '" readonly="true">
 
-<button id="editButton" type="button">Editar</button>
-<button id="saveButton" type="button" style="display:none;">Salvar</button>
+'. $botões . '
+
 <br><br>
 
-    <ul>
+
+<ul>
+
+<li>
+            <label for="Status">Status:</label>
+            <b>' . $result['Status'] . '</b>
+        </li>
+        <br>
+
 
   
 
@@ -247,10 +299,16 @@ date_default_timezone_set('America/Sao_Paulo');
             $('form input').removeAttr('readonly');
             $('form textarea').removeAttr('readonly');
             $('#editButton').hide();
+            $('#transmitirButton').hide();
+            $('#notaCancelarButton').hide();
+            $('#consultarButton').hide();
             $('#saveButton').show();
+            $('#cancelarEdiButton').show();
         });
 
-        $('#saveButton').click(function() {
+        //$('#saveButton').click(function() {
+        $('form').on('submit', function(e) {
+            e.preventDefault();
             var confirmacao = confirm("Todos os dados da Nota Fiscal de Serviço Eletronica estão corretos?");
 
             if (confirmacao == true) {
@@ -262,8 +320,8 @@ date_default_timezone_set('America/Sao_Paulo');
                     data: formData,
                     success: function(data) {
 
-                        console.log('sql_string: ' + data.sql_string);
-                        console.log('id_nota_fiscal: ' + data.id_nota_fiscal);
+                        //console.log('sql_string: ' + data.sql_string);
+                        //console.log('id_nota_fiscal: ' + data.id_nota_fiscal);
 
                         if (data.error) {
                             console.log('Erro no PHP: ' + data.error);
@@ -277,7 +335,11 @@ date_default_timezone_set('America/Sao_Paulo');
                             $('form input').attr('readonly', 'readonly');
                             $('form textarea').attr('readonly', 'readonly');
                             $('#saveButton').hide();
+                            $('#cancelarEdiButton').hide();
                             $('#editButton').show();
+                            $('#transmitirButton').show();
+                            $('#notaCancelarButton').show();
+                            $('#consultarButton').show();
                             console.log(data);
 
 
@@ -299,7 +361,14 @@ date_default_timezone_set('America/Sao_Paulo');
             }
         });
 
+        $('#cancelarEdiButton').click(function() {
+            //document.querySelector('#btnCancelar').addEventListener('click', function() {
+            window.location.reload();
+        });
+
+
     }); //final do ready function.
 </script>
 
-<?php include("base.php"); ?>
+<?php }
+                include("base.php"); ?>
