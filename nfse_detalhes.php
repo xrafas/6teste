@@ -26,6 +26,8 @@ date_default_timezone_set('America/Sao_Paulo');
                     echo "<h1 class='text-center'>O número da nota fiscal não foi encontrado.</h1>";
                 } else {
 
+                    $link_pdf = $result['Link_Pdf'];
+
                     if ($result['Status'] == '0') :
                         $result['Status'] = 'Em digitação';
                     elseif ($result['Status'] == '1') :
@@ -42,7 +44,7 @@ date_default_timezone_set('America/Sao_Paulo');
 
 
                     if (($result['Status'] == 'Autorizada') || ($result['Status'] == 'Autorizada(CCe)')) {
-                        $link_pdf = $result['Link_Pdf'];
+                        
                         $botões = '<button id="notaCancelarButton"  class="button-spacing"  style="margin-right: 10px;" type="button">Cancelar Nota</button>
 <button id="consultarButton"  class="button-spacing" type="button" style="margin-right: 10px;">Consultar</button>
 
@@ -54,7 +56,12 @@ date_default_timezone_set('America/Sao_Paulo');
 
 ';
                     } elseif ($result['Status'] == 'Cancelada') {
-                        $botões = '<button id="consultarButton"  class="button-spacing" type="button">Consultar</button>';
+                        $botões = '<button id="consultarButton"  class="button-spacing" type="button"  style="margin-right: 10px;">Consultar</button>
+                        <li>
+            <a href="' . $link_pdf . '">
+                <label><i>PDF</i></label>
+            </a>
+        </li>';
                     } else {
                         $botões = '<button id="editButton"  class="button-spacing" type="button" style="margin-right: 10px;">Editar</button>
 
@@ -84,6 +91,8 @@ date_default_timezone_set('America/Sao_Paulo');
 <form method="post">
 
 <input type="hidden" id="id_nota_fiscal" name="id_nota_fiscal" value="' . $id_nota_fiscal . '" readonly="true">
+
+<input type="hidden" id="Chave" name="Chave" value="' . $result['Chave'] . '" readonly="true">
 
 ' . $botões . '
 
@@ -382,6 +391,60 @@ date_default_timezone_set('America/Sao_Paulo');
         });
 
 
+
+        $('#notaCancelarButton').click(function(e) {
+            e.preventDefault();
+            var Id = $("#id_nota_fiscal").val();
+
+            // Solicita a justificativa para o cancelamento
+            var Justificativa = prompt("Por favor, forneça uma justificativa para o cancelamento (mínimo de 15 caracteres).");
+            if (Justificativa == null || Justificativa == "") {
+                alert("Cancelamento abortado. Nenhuma justificativa foi fornecida.");
+                return; // Cancela a operação se o usuário não fornecer uma justificativa
+            } else if (Justificativa.length < 15) {
+                alert("Cancelamento abortado. A justificativa fornecida é muito curta.");
+                return; // Cancela a operação se a justificativa for muito curta
+            }
+
+            $.ajax({
+                url: 'nfse/cancelar_nota_nfse.php',
+                type: 'POST',
+                data: {
+                    Id: Id,
+                    Justificativa: Justificativa // Envia a justificativa para o servidor
+                },
+                success: function(data) {
+                    $('#resultados').append("<p>" + data + "</p>"); // Adiciona o resultado à div
+                    alert('Nota cancelada com sucesso!');
+
+                    var response = JSON.parse(data); // parse the response into JSON
+                    // Check if the response was successful and the status is 3
+                    if (response.sucesso == '1') {
+                        $('#saveButton').hide();
+                        $('#cancelarEdiButton').hide();
+                        $('#editButton').hide();
+                        $('#transmitirButton').hide();
+                        $('#notaCancelarButton').hide();
+                        $('#consultarButton').show();
+
+                       
+                        $('#status').text('Cancelada');                        
+
+                    }
+
+
+                },
+                error: function(xhr, status, error) {
+                    // Código para executar se a solicitação falhar
+                    alert('Falha ao cancelar a nota. Por favor, tente novamente.');
+                }
+            });
+        });
+
+
+
+
+
         $('#transmitirButton').click(function(e) {
             e.preventDefault();
             var Id = $("#id_nota_fiscal").val();
@@ -407,8 +470,11 @@ date_default_timezone_set('America/Sao_Paulo');
                         $('#notaCancelarButton').show();
                         $('#consultarButton').show();
 
-                        // Update the status in your HTML
-                        $('#status').text('Autorizado');
+
+                        $('#status').text('Autorizada');
+
+                        // Atualizando o campo chave
+                        $('#Chave').val(response.chave);
 
                         $('li#pdf-link').html(
                             '<a href="' + response.link_pdf + '">' +
