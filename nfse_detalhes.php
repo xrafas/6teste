@@ -42,8 +42,17 @@ date_default_timezone_set('America/Sao_Paulo');
 
 
                     if (($result['Status'] == 'Autorizada') || ($result['Status'] == 'Autorizada(CCe)')) {
+                        $link_pdf = $result['Link_Pdf'];
                         $botões = '<button id="notaCancelarButton"  class="button-spacing"  style="margin-right: 10px;" type="button">Cancelar Nota</button>
-<button id="consultarButton"  class="button-spacing" type="button">Consultar</button>';
+<button id="consultarButton"  class="button-spacing" type="button" style="margin-right: 10px;">Consultar</button>
+
+<li>
+            <a href="' . $link_pdf . '">
+                <label><i>PDF</i></label>
+            </a>
+        </li>
+
+';
                     } elseif ($result['Status'] == 'Cancelada') {
                         $botões = '<button id="consultarButton"  class="button-spacing" type="button">Consultar</button>';
                     } else {
@@ -374,21 +383,9 @@ date_default_timezone_set('America/Sao_Paulo');
 
 
         $('#transmitirButton').click(function(e) {
-            e.preventDefault(); // Impede o comportamento padrão de enviar o formulário
+            e.preventDefault();
             var Id = $("#id_nota_fiscal").val();
 
-            // Primeiro envia os dados para editar_emitente.php
-            /*  $.ajax({
-                  type: 'POST',
-                  url: 'nfse/editar_emitente.php',
-                  data: {
-                      Id: Id
-                  },
-                  success: function(data) {
-                      $('#resultados').append("<p>" + data + "</p>"); // Adiciona o resultado à div
-                      //alert(data);
-                      // Em seguida, envia os dados para transmitir_nfse.php
-                      */
             $.ajax({
                 type: 'POST',
                 url: 'nfse/transmitir_nfse.php',
@@ -399,17 +396,34 @@ date_default_timezone_set('America/Sao_Paulo');
                     $('#resultados').append("<p>" + data2 + "</p>"); // Adiciona o resultado à div
                     //alert(data2);
                     alert('Dados enviados com sucesso!');
+
+                    var response = JSON.parse(data2); // parse the response into JSON
+                    // Check if the response was successful and the status is 3
+                    if (response.sucesso == '1') {
+                        $('#saveButton').hide();
+                        $('#cancelarEdiButton').hide();
+                        $('#editButton').hide();
+                        $('#transmitirButton').hide();
+                        $('#notaCancelarButton').show();
+                        $('#consultarButton').show();
+
+                        // Update the status in your HTML
+                        $('#status').text('Autorizado');
+
+                        $('li#pdf-link').html(
+                            '<a href="' + response.link_pdf + '">' +
+                            '<label><i>PDF</i></label><i class="fas fa-info-circle"></i>' +
+                            '</a>'
+                        );
+
+                    }
+
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
                     console.log(textStatus, errorThrown);
                 }
             });
-            /*
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.log(textStatus, errorThrown);
-                }
-            });*/
+
         });
 
 
