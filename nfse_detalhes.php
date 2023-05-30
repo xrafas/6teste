@@ -66,11 +66,17 @@ date_default_timezone_set('America/Sao_Paulo');
 
 
                     echo '
+
+                    <div id="resultados">
+                    <div id="transmitir1"></div>
+                    <div id="transmitir2"></div>
+                    </div>
+
 <form method="post">
 
 <input type="hidden" id="id_nota_fiscal" name="id_nota_fiscal" value="' . $id_nota_fiscal . '" readonly="true">
 
-'. $botões . '
+' . $botões . '
 
 <br><br>
 
@@ -364,6 +370,46 @@ date_default_timezone_set('America/Sao_Paulo');
         $('#cancelarEdiButton').click(function() {
             //document.querySelector('#btnCancelar').addEventListener('click', function() {
             window.location.reload();
+        });
+
+
+        $('#transmitirButton').click(function(e) {
+            e.preventDefault(); // Impede o comportamento padrão de enviar o formulário
+            var Id = $("#id_nota_fiscal").val();
+
+            // Primeiro envia os dados para editar_emitente.php
+            /*  $.ajax({
+                  type: 'POST',
+                  url: 'nfse/editar_emitente.php',
+                  data: {
+                      Id: Id
+                  },
+                  success: function(data) {
+                      $('#resultados').append("<p>" + data + "</p>"); // Adiciona o resultado à div
+                      //alert(data);
+                      // Em seguida, envia os dados para transmitir_nfse.php
+                      */
+            $.ajax({
+                type: 'POST',
+                url: 'nfse/transmitir_nfse.php',
+                data: {
+                    Id: Id
+                },
+                success: function(data2) {
+                    $('#resultados').append("<p>" + data2 + "</p>"); // Adiciona o resultado à div
+                    //alert(data2);
+                    alert('Dados enviados com sucesso!');
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log(textStatus, errorThrown);
+                }
+            });
+            /*
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log(textStatus, errorThrown);
+                }
+            });*/
         });
 
 
