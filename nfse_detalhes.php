@@ -28,23 +28,31 @@ date_default_timezone_set('America/Sao_Paulo');
 
                     $link_pdf = $result['Link_Pdf'];
 
-                    if ($result['Status'] == '0') :
-                        $result['Status'] = 'Em digitação';
-                    elseif ($result['Status'] == '1') :
-                        $result['Status'] = 'Assinada';
-                    elseif ($result['Status'] == '2') :
-                        $result['Status'] = 'Validada';
-                    elseif ($result['Status'] == '3') :
-                        $result['Status'] = 'Autorizada';
-                    elseif ($result['Status'] == '4') :
-                        $result['Status'] = 'Cancelada';
-                    elseif ($result['Status'] == '5') :
-                        $result['Status'] = 'Autorizada(CCe)';
-                    endif;
+                    function mapStatus($statusNumber)
+                    {
+                        switch ($statusNumber) {
+                            case 0:
+                                return 'Em digitação';
+                            case 1:
+                                return 'Assinado';
+                            case 2:
+                                return 'Validado';
+                            case 3:
+                                return 'Autorizado';
+                            case 4:
+                                return 'Cancelado';
+                            case 5:
+                                return 'Autorizado(CCe)';
+                            default:
+                                return 'Status desconhecido';
+                        }
+                    }
+
+                    $result['Status'] = mapStatus($result['Status']);
 
 
-                    if (($result['Status'] == 'Autorizada') || ($result['Status'] == 'Autorizada(CCe)')) {
-                        
+                    if (($result['Status'] == 'Autorizado') || ($result['Status'] == 'Autorizado(CCe)')) {
+
                         $botões = '<button id="notaCancelarButton"  class="button-spacing"  style="margin-right: 10px;" type="button">Cancelar Nota</button>
 <button id="consultarButton"  class="button-spacing" type="button" style="margin-right: 10px;">Consultar</button>
 
@@ -55,7 +63,7 @@ date_default_timezone_set('America/Sao_Paulo');
         </li>
 
 ';
-                    } elseif ($result['Status'] == 'Cancelada') {
+                    } elseif ($result['Status'] == 'Cancelado') {
                         $botões = '<button id="consultarButton"  class="button-spacing" type="button"  style="margin-right: 10px;">Consultar</button>
                         <li>
             <a href="' . $link_pdf . '">
@@ -92,7 +100,7 @@ date_default_timezone_set('America/Sao_Paulo');
 
 <input type="hidden" id="id_nota_fiscal" name="id_nota_fiscal" value="' . $id_nota_fiscal . '" readonly="true">
 
-<input type="hidden" id="Chave" name="Chave" value="' . $result['Chave'] . '" readonly="true">
+
 
 ' . $botões . '
 
@@ -122,6 +130,14 @@ date_default_timezone_set('America/Sao_Paulo');
             <label for="data_competencia">Data de Competência:</label>
             <input type="datetime-local" id="data_competencia" name="data_competencia" value="' . $result['Data_Competencia'] . '" readonly="true">
         </li>
+
+
+        <li>
+    <label for="Chave">Chave:</label>
+    <input type="text" id="Chave" name="Chave" value="' . (empty($result['Chave']) ? 'AUTOMÁTICO APÓS TRANSMISSÃO' : $result['Chave']) . '" readonly="true">
+</li>
+
+        
     </ul>
     <br>
 
@@ -166,12 +182,12 @@ date_default_timezone_set('America/Sao_Paulo');
     <b>Tomador:</b><br><br>
     <ul>
         <li>
-            <label for="tomador_cpf">CPF:</label>
+            <label for="tomador_cpf">CPF/CNPJ:</label>
             <input type="text" id="tomador_cpf" name="tomador_cpf" value="' . $result['Tomador_Cpf'] . '" readonly="true">
         </li>
         <li>
             <label for="tomador_cnpj">CNPJ:</label>
-            <input type="text" id="tomador_cnpj" name="tomador_cnpj" value="' . $result['Tomador_Cnpj'] . '" readonly="true">
+            <input type="hidden" id="tomador_cnpj" name="tomador_cnpj" value="' . $result['Tomador_Cnpj'] . '" readonly="true">
         </li>
         <li>
             <label for="tomador_razao_social">Razão Social:</label>
@@ -427,8 +443,8 @@ date_default_timezone_set('America/Sao_Paulo');
                         $('#notaCancelarButton').hide();
                         $('#consultarButton').show();
 
-                       
-                        $('#status').text('Cancelada');                        
+
+                        $('#status').text('Cancelado');
 
                     }
 
@@ -471,7 +487,7 @@ date_default_timezone_set('America/Sao_Paulo');
                         $('#consultarButton').show();
 
 
-                        $('#status').text('Autorizada');
+                        $('#status').text('Autorizado');
 
                         // Atualizando o campo chave
                         $('#Chave').val(response.chave);
@@ -492,8 +508,55 @@ date_default_timezone_set('America/Sao_Paulo');
 
         });
 
+        $('#consultarButton').click(function(e) {
+            e.preventDefault();
+            var Id = $("#id_nota_fiscal").val();
+
+            $.ajax({
+                url: 'nfse/consultar_nota_nfse.php',
+                type: 'POST',
+                data: {
+                    Id: Id
+                },
+                success: function(data) {
+                    $('#resultados').append("<p>" + data + "</p>");
+
+                    var response = JSON.parse(data);
+                    if (response.sucesso == true) {
+                        var statusText = mapStatus(response.status); // Use a função mapStatus aqui
+                        $('#status').val(statusText);
+                        // Atualizar a UI com base nos resultados da consulta
+                        // Por exemplo, se houver detalhes específicos da nota fiscal que você queira mostrar na interface do usuário, você pode atualizá-los aqui
+                    }
+                },
+                error: function(xhr, status, error) {
+                    alert('Falha ao consultar a nota. Por favor, tente novamente.');
+                }
+            });
+        });
+
+
 
     }); //final do ready function.
+
+    function mapStatus(statusNumber) {
+        switch (statusNumber) {
+            case 0:
+                return 'Em digitação';
+            case 1:
+                return 'Assinado';
+            case 2:
+                return 'Validado';
+            case 3:
+                return 'Autorizado';
+            case 4:
+                return 'Cancelado';
+            case 5:
+                return 'Autorizado(CCe)';
+            default:
+                return 'Status desconhecido';
+        }
+    }
 </script>
 
 <?php }
